@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>课标场景词图 · 早餐</title>
+    <title>课标场景词图</title>
     <style>
         * {
             margin: 0;
@@ -15,10 +15,86 @@
             font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
             min-height: 100vh;
         }
-        .container {
-            width: 100%;
-            background: transparent;
+        
+        .menu-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: 1px solid #d4b87a;
         }
+        .menu-btn:active { transform: scale(0.95); }
+        .menu-btn span { font-size: 24px; }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #fffef7;
+            z-index: 201;
+            transition: left 0.3s;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.active { left: 0; }
+        
+        .sidebar-header {
+            padding: 20px 16px;
+            background: #e6d5b8;
+            font-weight: 600;
+            font-size: 18px;
+            color: #5e3a1f;
+        }
+        
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 0;
+        }
+        .sidebar-item {
+            padding: 14px 20px;
+            font-size: 16px;
+            color: #5e3a1f;
+            cursor: pointer;
+            border-bottom: 1px solid #ecd9b4;
+        }
+        .sidebar-item:active { background: #f0e5d5; }
+        .sidebar-item.active {
+            background: #e6d5b8;
+            font-weight: 600;
+        }
+        
+        .pages-container { position: relative; width: 100%; }
+        
         .scene-container {
             position: relative;
             background: transparent;
@@ -29,7 +105,7 @@
             height: auto;
             display: block;
         }
-        /* 标注按钮样式 */
+        
         .pin {
             position: absolute;
             background: rgba(255, 255, 255, 0.95);
@@ -41,7 +117,6 @@
             cursor: pointer;
             border: 1px solid #d4b87a;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transition: 0.05s linear;
             white-space: nowrap;
             z-index: 10;
             display: flex;
@@ -53,170 +128,204 @@
             transform: scale(0.95);
             background: #f5e5c8;
         }
-        .pin-emoji {
-            font-size: 18px;
+        .pin-emoji { font-size: 18px; }
+        
+        .nav-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 50;
+        }
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #d4b87a;
+            border-radius: 40px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #5e3a1f;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .nav-btn:active { transform: scale(0.95); }
+        
+        .page-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            z-index: 50;
         }
         
-        /* 不同屏幕尺寸的按钮适配 */
-        @media (max-width: 768px) {
-            .pin {
-                padding: 6px 12px;
-                font-size: 14px;
-            }
-            .pin-emoji {
-                font-size: 16px;
-            }
+        @media (max-width: 600px) {
+            .pin { padding: 4px 10px; font-size: 12px; }
+            .pin-emoji { font-size: 14px; }
+            .sidebar { width: 260px; }
         }
-        
-        @media (max-width: 480px) {
-            .pin {
-                padding: 4px 10px;
-                font-size: 12px;
-            }
-            .pin-emoji {
-                font-size: 14px;
-            }
-        }
-        
-        /* 大屏幕（iPad横屏、学习机） */
         @media (min-width: 1024px) {
-            .pin {
-                padding: 10px 20px;
-                font-size: 18px;
-            }
-            .pin-emoji {
-                font-size: 20px;
-            }
+            .pin { padding: 10px 20px; font-size: 18px; }
+            .pin-emoji { font-size: 20px; }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="scene-container" style="position: relative;" id="sceneContainer">
-        <!-- 你的图片 -->
-        <img src="breakfast.png" alt="早餐餐桌" class="scene-img" id="sceneImg">
-        
-        <!-- 标注按钮会通过JS动态添加 -->
+    <div class="menu-btn" id="menuBtn"><span>☰</span></div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">📚 场景目录</div>
+        <div class="sidebar-list" id="sidebarList"></div>
     </div>
-</div>
 
-<script>
-    // ================= 坐标数据（基于原图 1142 × 2047） =================
-    const originalWidth = 1142;
-    const originalHeight = 2047;
-    
-    // 位置偏移（你已经调整好的）
-    const offsetX = 75;   // 右移
-    const offsetY = 113;  // 下移
-    
-    const foods = [
-        { word: "bread", emoji: "🍞", x: 300, y: 450, w: 420, h: 260 },
-        { word: "milk", emoji: "🥛", x: 850, y: 430, w: 400, h: 260 },
-        { word: "juice", emoji: "🧃", x: 200, y: 1150, w: 420, h: 350 },
-        { word: "egg", emoji: "🥚", x: 800, y: 1250, w: 400, h: 420 },
-        { word: "cereal", emoji: "🥣", x: 250, y: 1800, w: 420, h: 350 },
-        { word: "yogurt", emoji: "🥄", x: 750, y: 1800, w: 400, h: 350 }
-    ];
+    <div class="pages-container" id="pagesContainer"></div>
 
-    let bestVoice = null;
-    
-    // 获取最佳音色
-    function initBestVoice() {
-        const voices = window.speechSynthesis.getVoices();
-        bestVoice = voices.find(v => v.name.includes('Google') && v.lang === 'en-US') ||
-                    voices.find(v => v.name.includes('Jenny') && v.lang === 'en-US') ||
-                    voices.find(v => v.name.includes('Microsoft') && v.lang === 'en-US') ||
-                    voices.find(v => v.lang === 'en-US');
-    }
-    
-    if (window.speechSynthesis.getVoices().length > 0) {
-        initBestVoice();
-    } else {
-        window.speechSynthesis.onvoiceschanged = initBestVoice;
-    }
-    
-    // 发音功能
-    function speak(text) {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
+    <div class="nav-buttons">
+        <div class="nav-btn" id="prevBtn">◀ 上一页</div>
+        <div class="nav-btn" id="nextBtn">下一页 ▶</div>
+    </div>
+    <div class="page-indicator" id="pageIndicator"></div>
+
+    <script src="pages.js"></script>
+    <script>
+        let currentPage = 0;
+        let totalPages = 0;
+        let pagesData = [];
         
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "en-US";
-        utterance.rate = 0.85;
-        if (bestVoice) utterance.voice = bestVoice;
-        window.speechSynthesis.speak(utterance);
-    }
-
-    // 计算缩放比例
-    function getScale() {
-        const img = document.getElementById('sceneImg');
-        if (!img || !img.clientWidth) return { scaleX: 1, scaleY: 1 };
-        return {
-            scaleX: img.clientWidth / originalWidth,
-            scaleY: img.clientHeight / originalHeight
-        };
-    }
-
-    // 创建所有标注按钮
-    function createPins() {
-        const container = document.getElementById('sceneContainer');
-        const img = document.getElementById('sceneImg');
-        if (!container || !img) return;
-        
-        // 清除旧的标注
-        const oldPins = container.querySelectorAll('.pin');
-        oldPins.forEach(pin => pin.remove());
-        
-        const { scaleX, scaleY } = getScale();
-        
-        foods.forEach(food => {
-            const leftPos = (food.x + offsetX) * scaleX;
-            const topPos = (food.y + offsetY) * scaleY;
-            
-            const pin = document.createElement('div');
-            pin.className = 'pin';
-            pin.style.left = leftPos + 'px';
-            pin.style.top = topPos + 'px';
-            pin.innerHTML = `<span class="pin-emoji">${food.emoji}</span> ${food.word}`;
-            pin.addEventListener('click', (e) => {
-                e.stopPropagation();
-                speak(food.word);
-                // 视觉反馈
-                const originalBg = pin.style.background;
-                pin.style.background = '#d4e0c0';
-                setTimeout(() => { pin.style.background = originalBg; }, 150);
-            });
-            container.appendChild(pin);
-        });
-    }
-
-    // 图片加载完成后创建标注
-    const img = document.getElementById('sceneImg');
-    
-    function waitForImageAndCreate() {
-        if (img.clientWidth > 0 && img.clientHeight > 0) {
-            createPins();
-        } else {
-            setTimeout(waitForImageAndCreate, 50);
+        let bestVoice = null;
+        function initBestVoice() {
+            const voices = window.speechSynthesis.getVoices();
+            bestVoice = voices.find(v => v.name.includes('Google') && v.lang === 'en-US') ||
+                        voices.find(v => v.name.includes('Jenny') && v.lang === 'en-US') ||
+                        voices.find(v => v.name.includes('Microsoft') && v.lang === 'en-US') ||
+                        voices.find(v => v.lang === 'en-US');
         }
-    }
-    
-    if (img.complete && img.clientWidth > 0) {
-        createPins();
-    } else {
-        img.onload = () => {
-            createPins();
-        };
-    }
-    
-    // 窗口大小改变时重新计算位置
-    window.addEventListener('resize', () => {
-        createPins();
-    });
-    
-    img.onerror = () => {
-        alert('图片加载失败，请确认图片文件名为 breakfast.png 并放在同一文件夹下');
-    };
-</script>
+        if (window.speechSynthesis.getVoices().length > 0) {
+            initBestVoice();
+        } else {
+            window.speechSynthesis.onvoiceschanged = initBestVoice;
+        }
+        
+        function speak(text) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "en-US";
+            utterance.rate = 0.85;
+            if (bestVoice) utterance.voice = bestVoice;
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        async function loadPage(pageIndex) {
+            const pageFile = pageFiles[pageIndex];
+            if (!pageFile) return;
+            
+            const container = document.getElementById('pagesContainer');
+            const response = await fetch(`pages/${pageFile}`);
+            const html = await response.text();
+            
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const content = temp.firstChild;
+            
+            container.innerHTML = '';
+            container.appendChild(content.cloneNode(true));
+            
+            const dataScript = container.querySelector('.page-data');
+            if (dataScript) {
+                const pageData = JSON.parse(dataScript.textContent);
+                pagesData[pageIndex] = pageData;
+                createPinsForCurrentPage(pageData);
+            }
+        }
+        
+        function createPinsForCurrentPage(pageData) {
+            const container = document.querySelector('.scene-container');
+            const img = document.querySelector('.scene-img');
+            if (!container || !img || !pageData) return;
+            
+            const oldPins = container.querySelectorAll('.pin');
+            oldPins.forEach(pin => pin.remove());
+            
+            const scaleX = img.clientWidth / pageData.width;
+            const scaleY = img.clientHeight / pageData.height;
+            
+            pageData.foods.forEach(food => {
+                const leftPos = (food.x + (pageData.offsetX || 0)) * scaleX;
+                const topPos = (food.y + (pageData.offsetY || 0)) * scaleY;
+                
+                const pin = document.createElement('div');
+                pin.className = 'pin';
+                pin.style.left = leftPos + 'px';
+                pin.style.top = topPos + 'px';
+                pin.innerHTML = `<span class="pin-emoji">${food.emoji}</span> ${food.word}`;
+                pin.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    speak(food.word);
+                    const originalBg = pin.style.background;
+                    pin.style.background = '#d4e0c0';
+                    setTimeout(() => { pin.style.background = originalBg; }, 150);
+                });
+                container.appendChild(pin);
+            });
+        }
+        
+        async function showPage(pageIndex) {
+            if (pageIndex < 0 || pageIndex >= totalPages) return;
+            currentPage = pageIndex;
+            await loadPage(currentPage);
+            document.getElementById('pageIndicator').innerText = `第${currentPage+1}页 / 共${totalPages}页`;
+            
+            document.querySelectorAll('.sidebar-item').forEach((item, idx) => {
+                if (idx === currentPage) item.classList.add('active');
+                else item.classList.remove('active');
+            });
+        }
+        
+        function nextPage() { if (currentPage < totalPages - 1) showPage(currentPage + 1); }
+        function prevPage() { if (currentPage > 0) showPage(currentPage - 1); }
+        
+        function buildSidebar() {
+            const sidebarList = document.getElementById('sidebarList');
+            sidebarList.innerHTML = '';
+            
+            pageFiles.forEach((file, idx) => {
+                let title = file.replace('page-', '').replace('.html', '');
+                title = title.replace('breakfast', '🍳 早餐');
+                const item = document.createElement('div');
+                item.className = 'sidebar-item';
+                item.textContent = title;
+                item.addEventListener('click', () => { showPage(idx); closeSidebar(); });
+                sidebarList.appendChild(item);
+            });
+        }
+        
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('active');
+            document.getElementById('sidebarOverlay').classList.add('active');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+        
+        document.getElementById('menuBtn').addEventListener('click', openSidebar);
+        document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+        document.getElementById('nextBtn').addEventListener('click', nextPage);
+        document.getElementById('prevBtn').addEventListener('click', prevPage);
+        
+        totalPages = pageFiles.length;
+        buildSidebar();
+        showPage(0);
+        
+        window.addEventListener('resize', () => {
+            if (pagesData[currentPage]) createPinsForCurrentPage(pagesData[currentPage]);
+        });
+    </script>
 </body>
 </html>
