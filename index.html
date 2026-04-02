@@ -26,6 +26,7 @@
         }
         .scene-img {
             width: 100%;
+            height: auto;
             display: block;
         }
         /* 标注按钮样式 */
@@ -55,9 +56,37 @@
         .pin-emoji {
             font-size: 18px;
         }
-        @media (max-width: 600px) {
-            .pin { padding: 4px 12px; font-size: 13px; }
-            .pin-emoji { font-size: 14px; }
+        
+        /* 不同屏幕尺寸的按钮适配 */
+        @media (max-width: 768px) {
+            .pin {
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+            .pin-emoji {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .pin {
+                padding: 4px 10px;
+                font-size: 12px;
+            }
+            .pin-emoji {
+                font-size: 14px;
+            }
+        }
+        
+        /* 大屏幕（iPad横屏、学习机） */
+        @media (min-width: 1024px) {
+            .pin {
+                padding: 10px 20px;
+                font-size: 18px;
+            }
+            .pin-emoji {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -72,22 +101,21 @@
 </div>
 
 <script>
-    // ================= 坐标数据（基于实际图片 896 × 1200） =================
-    const originalWidth = 896;
-    const originalHeight = 1200;
+    // ================= 坐标数据（基于原图 1142 × 2047） =================
+    const originalWidth = 1142;
+    const originalHeight = 2047;
     
-    // 位置偏移（你可以根据需要调整）
-    const offsetX = 0;   // 右移（正数向右，负数向左）
-    const offsetY = 0;   // 下移（正数向下，负数向上）
+    // 位置偏移（你已经调整好的）
+    const offsetX = 75;   // 右移
+    const offsetY = 113;  // 下移
     
-    // 食物的可点击区域坐标（基于新图片比例微调）
     const foods = [
-        { word: "bread", emoji: "🍞", x: 250, y: 380, w: 350, h: 200 },
-        { word: "milk", emoji: "🥛", x: 600, y: 400, w: 280, h: 200 },
-        { word: "juice", emoji: "🧃", x: 180, y: 750, w: 300, h: 250 },
-        { word: "egg", emoji: "🥚", x: 580, y: 780, w: 300, h: 250 },
-        { word: "cereal", emoji: "🥣", x: 200, y: 1050, w: 320, h: 200 },
-        { word: "yogurt", emoji: "🥄", x: 600, y: 1080, w: 280, h: 200 }
+        { word: "bread", emoji: "🍞", x: 300, y: 450, w: 420, h: 260 },
+        { word: "milk", emoji: "🥛", x: 950, y: 400, w: 400, h: 260 },
+        { word: "juice", emoji: "🧃", x: 200, y: 1150, w: 420, h: 350 },
+        { word: "egg", emoji: "🥚", x: 900, y: 1190, w: 400, h: 420 },
+        { word: "cereal", emoji: "🥣", x: 250, y: 1800, w: 420, h: 350 },
+        { word: "yogurt", emoji: "🥄", x: 850, y: 1850, w: 400, h: 350 }
     ];
 
     let bestVoice = null;
